@@ -8,6 +8,7 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity(debug = true)
@@ -20,16 +21,17 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, AuthenticationManager authenticationManager) throws Exception {
-        http.authorizeRequests(authorize -> authorize.anyRequest().permitAll());
-
         http.csrf().disable();
+        http.authorizeHttpRequests(authorize -> authorize
+                        .antMatchers("/").permitAll()
+                        .antMatchers("/login").permitAll()
+                        .antMatchers("/login**").permitAll()
+                        .anyRequest().authenticated()
+                        .and()
+                        .addFilterAfter(authenticationFilter(authenticationManager, objectMapper), BasicAuthenticationFilter.class)
+//                .addFilter(authenticationFilter(authenticationManager, objectMapper))
 
-//        http.addFilterAfter(authenticationFilter(authenticationManager(http), objectMapper), BasicAuthenticationFilter.class);
-
-        http.addFilter(authenticationFilter(authenticationManager, objectMapper));
-
-//        http.formLogin();
-//        http.httpBasic();
+        );
 
         return http.build();
     }
@@ -40,9 +42,14 @@ public class SecurityConfig {
     }
 
     @Bean
-    public ItEventsAuthenticationFilter2 authenticationFilter(AuthenticationManager authenticationManager, ObjectMapper objectMapper) {
-        ItEventsAuthenticationFilter2 authenticationFilter = new ItEventsAuthenticationFilter2(objectMapper);
-        authenticationFilter.setAuthenticationManager(authenticationManager);
-        return authenticationFilter;
+    public ItEventsAuthenticationFilter authenticationFilter(AuthenticationManager authenticationManager, ObjectMapper objectMapper) {
+        return new ItEventsAuthenticationFilter(authenticationManager, objectMapper);
     }
+
+//    @Bean
+//    public ItEventsAuthenticationFilter2 authenticationFilter(AuthenticationManager authenticationManager, ObjectMapper objectMapper) {
+//        ItEventsAuthenticationFilter2 authenticationFilter = new ItEventsAuthenticationFilter2(objectMapper);
+//        authenticationFilter.setAuthenticationManager(authenticationManager);
+//        return authenticationFilter;
+//    }
 }
