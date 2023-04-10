@@ -3,6 +3,7 @@ package pl.patrykdepka.iteventsapi.security;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
+@RequestMapping("api/auth")
 public class LoginController {
 
     @PostMapping("/login")
